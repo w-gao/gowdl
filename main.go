@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"gowdl/internal"
-	"gowdl/parsers"
-	"os"
+
+	"github.com/w-gao/gowdl/internal/cmd"
+	"github.com/w-gao/gowdl/parsers"
 
 	"github.com/antlr/antlr4/runtime/Go/antlr/v4"
 )
@@ -35,11 +35,13 @@ func main() {
 	// tree := p.Document()
 	// antlr.ParseTreeWalkerDefault.Walk(NewWdlV1Listener(), tree)
 
-	version, err := internal.GetVersion(os.Args[1])
-	if err != nil {
-		fmt.Printf("error: %s\n", err)
-		return
-	}
+	// version, err := internal.GetVersion(os.Args[1])
+	// if err != nil {
+	// 	fmt.Printf("error: %s\n", err)
+	// 	return
+	// }
 
-	fmt.Printf("WDL version: '%s'\n", version)
+	// fmt.Printf("WDL version: '%s'\n", version)
+
+	cmd.Execute()
 }

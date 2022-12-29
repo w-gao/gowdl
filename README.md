@@ -1,25 +1,25 @@
 # gowdl
 
-A Workflow Description Language (WDL) parser and executor in Go.
+A Workflow Description Language (WDL) parser in Go.
 
 
 ## Getting started
 
 ### Install from source
 
-First, clone this repo:
+To install `gowdl` from source, first clone this repo:
 
 ```
 https://github.com/w-gao/gowdl.git
 ```
 
-Generate parsers:
+Then, generate the necessary parsers:
 
 ```
 make generate
 ```
 
-Install to local path:
+Finally, install the local package:
 
 ```
 go install .
