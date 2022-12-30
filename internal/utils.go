@@ -7,8 +7,9 @@ import (
 	"strings"
 )
 
-func GetVersion(filename string) (string, error) {
-	f, err := os.OpenFile(filename, os.O_RDONLY, os.ModePerm)
+// GetVersion gets the version of the input WDL document.
+func GetVersion(uri string) (string, error) {
+	f, err := os.Open(uri)
 	if err != nil {
 		return "", fmt.Errorf("%w", err)
 	}
@@ -34,4 +35,15 @@ func GetVersion(filename string) (string, error) {
 
 	// no version string... infer that it is draft-2
 	return "draft-2", nil
+}
+
+// IsIn checks if str is inside the slice.
+func IsIn(str string, slice []string) bool {
+	for _, v := range slice {
+		if v == str {
+			return true
+		}
+	}
+
+	return false
 }
