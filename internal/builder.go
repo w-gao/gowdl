@@ -4,13 +4,17 @@ import (
 	"fmt"
 
 	"github.com/antlr/antlr4/runtime/Go/antlr/v4"
-	"github.com/w-gao/gowdl/internal/listeners"
+	"github.com/w-gao/gowdl/internal/lib"
+	"github.com/w-gao/gowdl/internal/visitors"
 	"github.com/w-gao/gowdl/parsers"
+	// "github.com/w-gao/gowdl/parsers"
 )
 
 type WdlBuilder struct {
 	Version string
 	Url     string
+
+	Document *lib.Document
 }
 
 func NewWdlBuilder(url string) (*WdlBuilder, error) {
@@ -24,7 +28,6 @@ func NewWdlBuilder(url string) (*WdlBuilder, error) {
 	}
 
 	builder := &WdlBuilder{Version: version, Url: url}
-
 	return builder, nil
 }
 
@@ -36,8 +39,9 @@ func (this *WdlBuilder) ParseDocument() {
 	stream := antlr.NewCommonTokenStream(lexer, 0)
 	p := parsers.NewWdlV1Parser(stream)
 	// p.AddErrorListener(antlr.NewDiagnosticErrorListener(true))
-	// p.BuildParseTrees = true
+	p.BuildParseTrees = true
 
-	tree := p.Document() // start from the root
-	antlr.ParseTreeWalkerDefault.Walk(listeners.NewWdlV1Listener(), tree)
+	tree := p.Document()
+	visitor := visitors.NewWdlV1Visitor()
+	visitor.Visit(tree)
 }

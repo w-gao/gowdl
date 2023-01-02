@@ -12,5 +12,5 @@ fi
 
 
 # Generate parsers
-java -jar $ANTLR4_JAR -Dlanguage=Go -no-visitor -package $PACKAGE *.g4
+java -jar $ANTLR4_JAR -Dlanguage=Go -listener -visitor -package $PACKAGE *.g4
 echo "Parsers generated!"
