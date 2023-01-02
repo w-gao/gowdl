@@ -60,7 +60,6 @@ func IsIn(str string, slice []string) bool {
 func SmartOpen(uri string) (io.ReadCloser, error) {
 
 	if strings.HasPrefix(uri, "http://") || strings.HasPrefix(uri, "https://") {
-		// TODO: headers, etc from user
 		resp, err := http.DefaultClient.Get(uri)
 
 		if err != nil {
