@@ -1,6 +1,8 @@
 package main
 
-import "github.com/w-gao/gowdl/internal/cmd"
+import (
+	"github.com/w-gao/gowdl/internal/cmd"
+)
 
 func main() {
 	// version, err := internal.GetVersion(os.Args[1])

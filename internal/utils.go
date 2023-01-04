@@ -76,3 +76,18 @@ func SmartOpen(uri string) (io.ReadCloser, error) {
 	// Everything else falls back to os.Open()
 	return os.Open(uri) // f, err
 }
+
+func ReadString(uri string) (string, error) {
+	f, err := SmartOpen(uri)
+	if err != nil {
+		return "", err
+	}
+
+	builder := new(strings.Builder)
+	written, err := io.Copy(builder, f)
+	if written < 0 || err != nil {
+		return "", err
+	}
+
+	return builder.String(), nil
+}

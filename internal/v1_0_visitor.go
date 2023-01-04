@@ -1,7 +1,9 @@
-package visitors
+package internal
 
 import (
 	"fmt"
+	"reflect"
+	"strings"
 
 	"github.com/antlr/antlr4/runtime/Go/antlr/v4"
 	"github.com/w-gao/gowdl/parsers"
@@ -26,6 +28,10 @@ func (v *WdlV1Visitor) Visit(tree antlr.ParseTree) interface{} {
 		return nil
 	}
 }
+
+func (v *WdlV1Visitor) VisitChildren(node antlr.RuleNode) interface{}     { return nil }
+func (v *WdlV1Visitor) VisitTerminal(node antlr.TerminalNode) interface{} { return nil }
+func (v *WdlV1Visitor) VisitErrorNode(node antlr.ErrorNode) interface{}   { return nil }
 
 // func (v *WdlV1Visitor) VisitMap_type(ctx *parsers.Map_typeContext) interface{} {
 // 	return v.VisitChildren(ctx)
@@ -67,9 +73,14 @@ func (v *WdlV1Visitor) Visit(tree antlr.ParseTree) interface{} {
 // 	return v.VisitChildren(ctx)
 // }
 
-// func (v *WdlV1Visitor) VisitString_part(ctx *parsers.String_partContext) interface{} {
-// 	return v.VisitChildren(ctx)
-// }
+func (v *WdlV1Visitor) VisitString_part(ctx *parsers.String_partContext) string {
+	var parts []string
+	for _, part := range ctx.AllStringPart() {
+		parts = append(parts, part.GetText())
+	}
+
+	return strings.Join(parts, "")
+}
 
 // func (v *WdlV1Visitor) VisitString_expr_part(ctx *parsers.String_expr_partContext) interface{} {
 // 	return v.VisitChildren(ctx)
@@ -79,9 +90,20 @@ func (v *WdlV1Visitor) Visit(tree antlr.ParseTree) interface{} {
 // 	return v.VisitChildren(ctx)
 // }
 
-// func (v *WdlV1Visitor) VisitString(ctx *parsers.StringContext) interface{} {
-// 	return v.VisitChildren(ctx)
-// }
+func (v *WdlV1Visitor) VisitString(ctx *parsers.StringContext) string { // interface{} {
+	// TODO: parse actual string, which can contain expressions!
+	for _, ctx := range ctx.GetChildren() {
+		switch tt := ctx.(type) {
+		case *parsers.String_partContext:
+			return v.VisitString_part(tt)
+		default:
+			fmt.Printf("WARN: NotImplemented: %v\n", reflect.TypeOf(tt))
+		}
+	}
+
+	// return v.VisitChildren(ctx)
+	return ""
+}
 
 // func (v *WdlV1Visitor) VisitPrimitive_literal(ctx *parsers.Primitive_literalContext) interface{} {
 // 	return v.VisitChildren(ctx)
@@ -228,17 +250,35 @@ func (v *WdlV1Visitor) VisitVersion(ctx *parsers.VersionContext) string {
 	return ctx.ReleaseVersion().GetText()
 }
 
-// func (v *WdlV1Visitor) VisitImport_alias(ctx *parsers.Import_aliasContext) interface{} {
-// 	return v.VisitChildren(ctx)
-// }
+func (v *WdlV1Visitor) VisitImport_alias(ctx *parsers.Import_aliasContext) interface{} {
+	return v.VisitChildren(ctx)
+}
 
-// func (v *WdlV1Visitor) VisitImport_as(ctx *parsers.Import_asContext) interface{} {
-// 	return v.VisitChildren(ctx)
-// }
+func (v *WdlV1Visitor) VisitImport_as(ctx *parsers.Import_asContext) interface{} {
+	return v.VisitChildren(ctx)
+}
 
-// func (v *WdlV1Visitor) VisitImport_doc(ctx *parsers.Import_docContext) interface{} {
-// 	return v.VisitChildren(ctx)
-// }
+func (v *WdlV1Visitor) VisitImport_doc(ctx *parsers.Import_docContext) Import {
+	var url string
+	var as string // optional
+	// var aliases []lib.ImportAlias
+
+	for _, ctx := range ctx.GetChildren() {
+		switch tt := ctx.(type) {
+		case *parsers.StringContext:
+			url = v.VisitString(tt)
+		case *parsers.Import_asContext:
+			as = tt.Identifier().GetText()
+		default:
+			fmt.Printf("WARN: NotImplemented: %v\n", reflect.TypeOf(tt))
+		}
+	}
+
+	return Import{
+		Url: url,
+		As:  as,
+	}
+}
 
 // func (v *WdlV1Visitor) VisitStruct(ctx *parsers.StructContext) interface{} {
 // 	return v.VisitChildren(ctx)
@@ -384,18 +424,45 @@ func (v *WdlV1Visitor) VisitVersion(ctx *parsers.VersionContext) string {
 // 	return v.VisitChildren(ctx)
 // }
 
-// func (v *WdlV1Visitor) VisitWorkflow(ctx *parsers.WorkflowContext) interface{} {
-// 	return v.VisitChildren(ctx)
-// }
-
-// func (v *WdlV1Visitor) VisitDocument_element(ctx *parsers.Document_elementContext) interface{} {
-// 	return v.VisitChildren(ctx)
-// }
-
-func (v *WdlV1Visitor) VisitDocument(ctx *parsers.DocumentContext) interface{} {
-	fmt.Println("visiting document")
-	version := v.VisitVersion(ctx.Version().(*parsers.VersionContext))
-	fmt.Printf("version: %v\n", version)
-
+func (v *WdlV1Visitor) VisitWorkflow(ctx *parsers.WorkflowContext) *Workflow {
 	return nil
+}
+
+func (v *WdlV1Visitor) VisitDocument_element(ctx *parsers.Document_elementContext) interface{} {
+	fmt.Println("WARN: VisitDocument_element is deprecated.")
+	return nil
+}
+
+func (v *WdlV1Visitor) VisitDocument(ctx *parsers.DocumentContext) *Document {
+	var version string
+	var workflow *Workflow // optional
+	var imports []Import
+
+	for _, ctx := range ctx.GetChildren() {
+		switch tt := ctx.(type) {
+		case *parsers.VersionContext:
+			// The grammar enforces that there should be one and only one version statement
+			version = v.VisitVersion(tt)
+		case *parsers.WorkflowContext:
+			workflow = v.VisitWorkflow(tt)
+		case *parsers.Document_elementContext:
+			// Let's flatten this.
+			switch tt := tt.GetChild(0).(type) {
+			case *parsers.Import_docContext:
+				imports = append(imports, v.VisitImport_doc(tt))
+			// TODO: tasks and structs
+			default:
+				fmt.Printf("WARN: NotImplemented: %v\n", reflect.TypeOf(tt))
+			}
+
+		default:
+			fmt.Printf("WARN: NotImplemented: %v\n", reflect.TypeOf(tt))
+		}
+	}
+
+	return &Document{
+		Version:  version,
+		Workflow: workflow,
+		Imports:  imports,
+	}
 }
