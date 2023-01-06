@@ -6,11 +6,18 @@ import (
 	"strings"
 
 	"github.com/antlr/antlr4/runtime/Go/antlr/v4"
+	"github.com/w-gao/gowdl/internal/domain"
 	"github.com/w-gao/gowdl/parsers"
 )
 
 type WdlV1Visitor struct {
-	// Move away from the generated interface which is ambiguous with typing.
+	// Let's move away from the generated interface which is ambiguous with
+	// typing. This way we'd lose some functionality such as tree.Accept(v),
+	// since the visitor no longer implements the antlr.ParseTreeVisitor
+	// interface, but we mitigate that with the Visit() function.
+
+	// We should, however, make a visitor interface to support multiple WDL
+	// versions. We can do that later.
 	// parsers.BaseWdlV1ParserVisitor
 
 }
@@ -258,7 +265,7 @@ func (v *WdlV1Visitor) VisitImport_as(ctx *parsers.Import_asContext) interface{}
 	return v.VisitChildren(ctx)
 }
 
-func (v *WdlV1Visitor) VisitImport_doc(ctx *parsers.Import_docContext) Import {
+func (v *WdlV1Visitor) VisitImport_doc(ctx *parsers.Import_docContext) domain.Import {
 	var url string
 	var as string // optional
 	// var aliases []lib.ImportAlias
@@ -274,7 +281,7 @@ func (v *WdlV1Visitor) VisitImport_doc(ctx *parsers.Import_docContext) Import {
 		}
 	}
 
-	return Import{
+	return domain.Import{
 		Url: url,
 		As:  as,
 	}
@@ -424,7 +431,7 @@ func (v *WdlV1Visitor) VisitImport_doc(ctx *parsers.Import_docContext) Import {
 // 	return v.VisitChildren(ctx)
 // }
 
-func (v *WdlV1Visitor) VisitWorkflow(ctx *parsers.WorkflowContext) *Workflow {
+func (v *WdlV1Visitor) VisitWorkflow(ctx *parsers.WorkflowContext) *domain.Workflow {
 	return nil
 }
 
@@ -433,10 +440,10 @@ func (v *WdlV1Visitor) VisitDocument_element(ctx *parsers.Document_elementContex
 	return nil
 }
 
-func (v *WdlV1Visitor) VisitDocument(ctx *parsers.DocumentContext) *Document {
+func (v *WdlV1Visitor) VisitDocument(ctx *parsers.DocumentContext) *domain.Document {
 	var version string
-	var workflow *Workflow // optional
-	var imports []Import
+	var workflow *domain.Workflow // optional
+	var imports []domain.Import
 
 	for _, ctx := range ctx.GetChildren() {
 		switch tt := ctx.(type) {
@@ -460,7 +467,7 @@ func (v *WdlV1Visitor) VisitDocument(ctx *parsers.DocumentContext) *Document {
 		}
 	}
 
-	return &Document{
+	return &domain.Document{
 		Version:  version,
 		Workflow: workflow,
 		Imports:  imports,

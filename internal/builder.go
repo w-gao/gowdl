@@ -1,9 +1,11 @@
 package internal
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/antlr/antlr4/runtime/Go/antlr/v4"
+	"github.com/w-gao/gowdl/internal/domain"
 	"github.com/w-gao/gowdl/parsers"
 )
 
@@ -12,7 +14,7 @@ type WdlBuilder struct {
 	MaxImportDepth int
 
 	Version  string
-	Document *Document
+	Document *domain.Document
 }
 
 func NewWdlBuilder(url string) (*WdlBuilder, error) {
@@ -48,6 +50,11 @@ func (this *WdlBuilder) ParseDocument() error {
 	document := visitor.VisitDocument(tree.(*parsers.DocumentContext))
 
 	fmt.Printf("%v\n", document)
+
+	out, err := json.MarshalIndent(document, "", "    ")
+	if err == nil {
+		fmt.Printf("%v\n", string(out))
+	}
 
 	return nil
 }

@@ -50,8 +50,8 @@ func IsIn(str string, slice []string) bool {
 	return false
 }
 
-// SmartOpen smartly opens a file based on the URI. Supported URIs are file://,
-// http://, and https://.
+// SmartOpen smartly opens a file based on the URI. Supported URIs are relative
+// and absolute paths, file://, and http(s)://.
 //
 // Read() of the returned io.ReadCloser may raise an error. For example, when
 // the connection terminates when streaming from the Internet.
@@ -63,7 +63,7 @@ func SmartOpen(uri string) (io.ReadCloser, error) {
 		resp, err := http.DefaultClient.Get(uri)
 
 		if err != nil {
-			return nil, fmt.Errorf("%w", err)
+			return nil, err
 		}
 
 		return resp.Body, nil
@@ -77,11 +77,16 @@ func SmartOpen(uri string) (io.ReadCloser, error) {
 	return os.Open(uri) // f, err
 }
 
+// ReadString returns all the string content of the file pointed by the URI.
+// Currently supported protocols are: relative and absolute paths, file://,
+// and http(s)://.
 func ReadString(uri string) (string, error) {
 	f, err := SmartOpen(uri)
 	if err != nil {
 		return "", err
 	}
+
+	defer f.Close()
 
 	builder := new(strings.Builder)
 	written, err := io.Copy(builder, f)
