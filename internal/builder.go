@@ -45,9 +45,15 @@ func (this *WdlBuilder) ParseDocument() error {
 	// p.AddErrorListener(antlr.NewDiagnosticErrorListener(true))
 	p.BuildParseTrees = true
 
+	// v1.1
+	// input := antlr.NewInputStream(data)
+	// lexer := v1_1.NewWdlV1_1Lexer(input)
+	// stream := antlr.NewCommonTokenStream(lexer, 0)
+	// p := v1_1.NewWdlV1_1Parser(stream)
+
 	tree := p.Document()
 	visitor := NewWdlV1Visitor()
-	document := visitor.VisitDocument(tree.(*parsers.DocumentContext))
+	document := visitor.Visit(tree)
 
 	fmt.Printf("%v\n", document)
 

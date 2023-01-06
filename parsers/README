@@ -5,3 +5,9 @@ The grammar and generated files come from `github.com/openwdl/wdl` under the BSD
     https://github.com/openwdl/wdl/blob/main/LICENSE
 
 The Go parsers are generated using ANTLR4 version 4.11.1.
+
+
+TODO: There is going to be a problem with the current structure when we want to
+    support multiple WDL versions. Since all uppercase functions / types are
+    under the package namespace, there will be a lot of conflicting names with
+    multiple versions.

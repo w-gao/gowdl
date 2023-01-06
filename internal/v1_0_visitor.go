@@ -7,17 +7,14 @@ import (
 
 	"github.com/antlr/antlr4/runtime/Go/antlr/v4"
 	"github.com/w-gao/gowdl/internal/domain"
+	"github.com/w-gao/gowdl/internal/impl"
 	"github.com/w-gao/gowdl/parsers"
 )
 
-type IErrorReporter interface {
-	ReportError(antlr.ParserRuleContext, error)
-}
-
-type DefaultErrorReporter struct{}
-
-func (r *DefaultErrorReporter) ReportError(ctx antlr.ParserRuleContext, err error) {
-	fmt.Printf("Error: %v\n", err)
+type IVisitorReporter interface {
+	Warn(antlr.ParserRuleContext, string)
+	Error(antlr.ParserRuleContext, error)
+	NotImplemented(fmt.Stringer)
 }
 
 type ContainsIdentifierContext interface {
@@ -35,20 +32,33 @@ type WdlV1Visitor struct {
 	// versions. We can do that later.
 	// parsers.BaseWdlV1ParserVisitor
 
-	ErrorReporter IErrorReporter
+	Reporter IVisitorReporter
 }
 
 func NewWdlV1Visitor() *WdlV1Visitor {
-	errReporter := &DefaultErrorReporter{}
+	reporter := &impl.FmtReporter{}
 	return &WdlV1Visitor{
-		ErrorReporter: errReporter,
+		Reporter: reporter,
 	}
 }
 
 // Visit takes in any parse tree and visits the child nodes from there.
 func (v *WdlV1Visitor) Visit(tree antlr.ParseTree) interface{} {
+	// fmt.Printf("%v\n", reflect.TypeOf(tree).Elem().Name())
+
+	// switch t := tree.(type) {
+	// case *parsers.DocumentContext:
+	// 	return v.VisitDocument(t)
+	// default:
+	// 	return nil
+	// }
+
+	// TODO: if we want to support multiple versions, we cannot rely on the context structs
+	// 		of a particular version (like v1.0), but to abstract each context into its own
+	// 		interface and use it everywhere instead.
+
 	switch t := tree.(type) {
-	case *parsers.DocumentContext:
+	case parsers.IDocumentContext:
 		return v.VisitDocument(t)
 	default:
 		return nil
@@ -59,14 +69,9 @@ func (v *WdlV1Visitor) VisitChildren(node antlr.RuleNode) interface{}     { retu
 func (v *WdlV1Visitor) VisitTerminal(node antlr.TerminalNode) interface{} { return nil }
 func (v *WdlV1Visitor) VisitErrorNode(node antlr.ErrorNode) interface{}   { return nil }
 
+// VisitIdentifier is a special visitor that returns the identifier that is under the given context.
 func (v *WdlV1Visitor) VisitIdentifier(ctx ContainsIdentifierContext) domain.Identifier {
-	id := domain.Identifier(ctx.Identifier().GetText())
-
-	if !id.IsValid() {
-		v.ErrorReporter.ReportError(ctx, fmt.Errorf("invalid identifier: %v", id))
-	}
-
-	return id
+	return domain.Identifier(ctx.Identifier().GetText())
 }
 
 // func (v *WdlV1Visitor) VisitMap_type(ctx *parsers.Map_typeContext) interface{} {
@@ -128,12 +133,12 @@ func (v *WdlV1Visitor) VisitString_part(ctx *parsers.String_partContext) string 
 
 func (v *WdlV1Visitor) VisitString(ctx *parsers.StringContext) string { // interface{} {
 	// TODO: parse actual string, which can contain expressions!
-	for _, ctx := range ctx.GetChildren() {
-		switch tt := ctx.(type) {
+	for _, child := range ctx.GetChildren() {
+		switch tt := child.(type) {
 		case *parsers.String_partContext:
 			return v.VisitString_part(tt)
 		default:
-			fmt.Printf("WARN: NotImplemented: %v\n", reflect.TypeOf(tt))
+			v.Reporter.NotImplemented(reflect.TypeOf(tt))
 		}
 	}
 
@@ -282,7 +287,7 @@ func (v *WdlV1Visitor) VisitString(ctx *parsers.StringContext) string { // inter
 // }
 
 // VisitVersion returns the version as a string. This is a terminal operation.
-func (v *WdlV1Visitor) VisitVersion(ctx *parsers.VersionContext) string {
+func (v *WdlV1Visitor) VisitVersion(ctx domain.IVersionContext) string {
 	return ctx.ReleaseVersion().GetText()
 }
 
@@ -299,14 +304,14 @@ func (v *WdlV1Visitor) VisitImport_doc(ctx *parsers.Import_docContext) domain.Im
 	var as domain.Identifier // optional
 	// var aliases []lib.ImportAlias
 
-	for _, ctx := range ctx.GetChildren() {
-		switch tt := ctx.(type) {
+	for _, child := range ctx.GetChildren() {
+		switch tt := child.(type) {
 		case *parsers.StringContext:
 			url = v.VisitString(tt)
 		case *parsers.Import_asContext:
 			as = v.VisitIdentifier(tt)
 		default:
-			fmt.Printf("WARN: NotImplemented: %v\n", reflect.TypeOf(tt))
+			v.Reporter.NotImplemented(reflect.TypeOf(tt))
 		}
 	}
 
@@ -465,34 +470,35 @@ func (v *WdlV1Visitor) VisitWorkflow(ctx *parsers.WorkflowContext) *domain.Workf
 }
 
 func (v *WdlV1Visitor) VisitDocument_element(ctx *parsers.Document_elementContext) interface{} {
-	fmt.Println("WARN: VisitDocument_element is deprecated.")
+	v.Reporter.Warn(ctx, "VisitDocument_element is deprecated")
 	return nil
 }
 
-func (v *WdlV1Visitor) VisitDocument(ctx *parsers.DocumentContext) *domain.Document {
+func (v *WdlV1Visitor) VisitDocument(ctx domain.IDocumentContext) *domain.Document {
 	var version string
 	var workflow *domain.Workflow // optional
 	var imports []domain.Import
 
 	for _, ctx := range ctx.GetChildren() {
 		switch tt := ctx.(type) {
-		case *parsers.VersionContext:
-			// The grammar enforces that there should be one and only one version statement
+		// There should be exactly one version statement and one or zero workflows.
+		case domain.IVersionContext:
 			version = v.VisitVersion(tt)
 		case *parsers.WorkflowContext:
 			workflow = v.VisitWorkflow(tt)
+		// There could be a number of document elements.
 		case *parsers.Document_elementContext:
 			// Let's flatten this.
 			switch tt := tt.GetChild(0).(type) {
 			case *parsers.Import_docContext:
 				imports = append(imports, v.VisitImport_doc(tt))
-			// TODO: tasks and structs
+			// TODO: tasks
+			// TODO: structs
 			default:
-				fmt.Printf("WARN: NotImplemented: %v\n", reflect.TypeOf(tt))
+				v.Reporter.NotImplemented(reflect.TypeOf(tt))
 			}
-
 		default:
-			fmt.Printf("WARN: NotImplemented: %v\n", reflect.TypeOf(tt))
+			v.Reporter.NotImplemented(reflect.TypeOf(tt))
 		}
 	}
 
