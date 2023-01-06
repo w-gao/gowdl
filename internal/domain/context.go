@@ -79,6 +79,9 @@ type IExpression_placeholder_optionContext interface {
 type IString_partContext interface {
 	antlr.ParserRuleContext
 
+	AllStringPart() []antlr.TerminalNode
+	StringPart(i int) antlr.TerminalNode
+
 	GetParser() antlr.Parser
 	IsString_partContext()
 }
@@ -192,6 +195,8 @@ type IImport_aliasContext interface {
 
 type IImport_asContext interface {
 	antlr.ParserRuleContext
+
+	Identifier() antlr.TerminalNode
 
 	GetParser() antlr.Parser
 	IsImport_asContext()

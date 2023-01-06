@@ -52,7 +52,7 @@ func (this *WdlBuilder) ParseDocument() error {
 	// p := v1_1.NewWdlV1_1Parser(stream)
 
 	tree := p.Document()
-	visitor := NewWdlV1Visitor()
+	visitor := NewWdlVisitor(this.Version)
 	document := visitor.Visit(tree)
 
 	fmt.Printf("%v\n", document)
