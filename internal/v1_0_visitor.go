@@ -10,6 +10,21 @@ import (
 	"github.com/w-gao/gowdl/parsers"
 )
 
+type IErrorReporter interface {
+	ReportError(antlr.ParserRuleContext, error)
+}
+
+type DefaultErrorReporter struct{}
+
+func (r *DefaultErrorReporter) ReportError(ctx antlr.ParserRuleContext, err error) {
+	fmt.Printf("Error: %v\n", err)
+}
+
+type ContainsIdentifierContext interface {
+	antlr.ParserRuleContext
+	Identifier() antlr.TerminalNode
+}
+
 type WdlV1Visitor struct {
 	// Let's move away from the generated interface which is ambiguous with
 	// typing. This way we'd lose some functionality such as tree.Accept(v),
@@ -20,10 +35,14 @@ type WdlV1Visitor struct {
 	// versions. We can do that later.
 	// parsers.BaseWdlV1ParserVisitor
 
+	ErrorReporter IErrorReporter
 }
 
 func NewWdlV1Visitor() *WdlV1Visitor {
-	return &WdlV1Visitor{}
+	errReporter := &DefaultErrorReporter{}
+	return &WdlV1Visitor{
+		ErrorReporter: errReporter,
+	}
 }
 
 // Visit takes in any parse tree and visits the child nodes from there.
@@ -39,6 +58,16 @@ func (v *WdlV1Visitor) Visit(tree antlr.ParseTree) interface{} {
 func (v *WdlV1Visitor) VisitChildren(node antlr.RuleNode) interface{}     { return nil }
 func (v *WdlV1Visitor) VisitTerminal(node antlr.TerminalNode) interface{} { return nil }
 func (v *WdlV1Visitor) VisitErrorNode(node antlr.ErrorNode) interface{}   { return nil }
+
+func (v *WdlV1Visitor) VisitIdentifier(ctx ContainsIdentifierContext) domain.Identifier {
+	id := domain.Identifier(ctx.Identifier().GetText())
+
+	if !id.IsValid() {
+		v.ErrorReporter.ReportError(ctx, fmt.Errorf("invalid identifier: %v", id))
+	}
+
+	return id
+}
 
 // func (v *WdlV1Visitor) VisitMap_type(ctx *parsers.Map_typeContext) interface{} {
 // 	return v.VisitChildren(ctx)
@@ -267,7 +296,7 @@ func (v *WdlV1Visitor) VisitImport_as(ctx *parsers.Import_asContext) interface{}
 
 func (v *WdlV1Visitor) VisitImport_doc(ctx *parsers.Import_docContext) domain.Import {
 	var url string
-	var as string // optional
+	var as domain.Identifier // optional
 	// var aliases []lib.ImportAlias
 
 	for _, ctx := range ctx.GetChildren() {
@@ -275,7 +304,7 @@ func (v *WdlV1Visitor) VisitImport_doc(ctx *parsers.Import_docContext) domain.Im
 		case *parsers.StringContext:
 			url = v.VisitString(tt)
 		case *parsers.Import_asContext:
-			as = tt.Identifier().GetText()
+			as = v.VisitIdentifier(tt)
 		default:
 			fmt.Printf("WARN: NotImplemented: %v\n", reflect.TypeOf(tt))
 		}
