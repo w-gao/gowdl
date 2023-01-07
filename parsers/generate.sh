@@ -11,7 +11,7 @@ fi
 
 
 # Generate parsers
-for f in v*; do
+for f in *; do
     if [ -d "$f" ]; then
         echo "Generating parsers for $f..."
         java -jar $ANTLR4_JAR -Dlanguage=Go -no-listener -visitor -package $f $f/*.g4

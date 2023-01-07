@@ -44,17 +44,6 @@ func NewWdlVisitor(version string) *WdlVisitor {
 func (v *WdlVisitor) Visit(tree antlr.ParseTree) interface{} {
 	// fmt.Printf("%v\n", reflect.TypeOf(tree).Elem().Name())
 
-	// switch t := tree.(type) {
-	// case *parsers.DocumentContext:
-	// 	return v.VisitDocument(t)
-	// default:
-	// 	return nil
-	// }
-
-	// TODO: if we want to support multiple versions, we cannot rely on the context structs
-	// 		of a particular version (like v1.0), but to abstract each context into its own
-	// 		interface and use it everywhere instead.
-
 	switch t := tree.(type) {
 	case domain.IDocumentContext:
 		return v.VisitDocument(t)

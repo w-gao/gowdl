@@ -1,12 +1,10 @@
 package internal
 
 import (
-	"encoding/json"
 	"fmt"
 
-	"github.com/antlr/antlr4/runtime/Go/antlr/v4"
 	"github.com/w-gao/gowdl/internal/domain"
-	"github.com/w-gao/gowdl/parsers/v1_0"
+	"github.com/w-gao/gowdl/parsers"
 )
 
 type WdlBuilder struct {
@@ -32,35 +30,29 @@ func NewWdlBuilder(url string) (*WdlBuilder, error) {
 	return builder, nil
 }
 
-func (this *WdlBuilder) ParseDocument() error {
+func (this *WdlBuilder) ParseDocument() (*domain.Document, error) {
 	data, err := ReadString(this.Url)
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("Failed to read from URI: %w", err)
 	}
 
-	input := antlr.NewInputStream(data)
-	lexer := v1_0.NewWdlV1Lexer(input)
-	stream := antlr.NewCommonTokenStream(lexer, 0)
-	p := v1_0.NewWdlV1Parser(stream)
-	// p.AddErrorListener(antlr.NewDiagnosticErrorListener(true))
-	p.BuildParseTrees = true
+	version := this.Version
+	visitor := NewWdlVisitor(version)
+	var document *domain.Document
 
-	// v1.1
-	// input := antlr.NewInputStream(data)
-	// lexer := v1_1.NewWdlV1_1Lexer(input)
-	// stream := antlr.NewCommonTokenStream(lexer, 0)
-	// p := v1_1.NewWdlV1_1Parser(stream)
-
-	tree := p.Document()
-	visitor := NewWdlVisitor(this.Version)
-	document := visitor.Visit(tree)
-
-	fmt.Printf("%v\n", document)
-
-	out, err := json.MarshalIndent(document, "", "    ")
-	if err == nil {
-		fmt.Printf("%v\n", string(out))
+	switch version {
+	case "1.0":
+		p := parsers.NewWdlV1_0Parser(data)
+		document = visitor.VisitDocument(p.Document())
+	case "1.1":
+		p := parsers.NewWdlV1_1Parser(data)
+		document = visitor.VisitDocument(p.Document())
+	case "development":
+		return nil, fmt.Errorf("The development version is not supported yet")
+	default:
+		// This shouldn't happen since we validate in the constructor, but just in case.
+		return nil, fmt.Errorf("Unknown WDL version: %v", this.Version)
 	}
 
-	return nil
+	return document, nil
 }

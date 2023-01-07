@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -22,7 +23,18 @@ func init() {
 				return
 			}
 
-			builder.ParseDocument()
+			document, err := builder.ParseDocument()
+
+			if err != nil {
+				fmt.Printf("Failed to parse the WDL document. Reason: %v\n", err)
+			}
+
+			fmt.Printf("%v\n", document)
+			out, err := json.MarshalIndent(document, "", "    ")
+			if err == nil {
+				fmt.Printf("%v\n", string(out))
+			}
+
 		},
 	})
 }
