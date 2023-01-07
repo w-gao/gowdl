@@ -189,6 +189,9 @@ type IVersionContext interface {
 type IImport_aliasContext interface {
 	antlr.ParserRuleContext
 
+	AllIdentifier() []antlr.TerminalNode
+	Identifier(i int) antlr.TerminalNode
+
 	GetParser() antlr.Parser
 	IsImport_aliasContext()
 }

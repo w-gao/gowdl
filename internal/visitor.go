@@ -16,11 +16,6 @@ type IVisitorReporter interface {
 	NotImplemented(fmt.Stringer)
 }
 
-type ContainsIdentifierContext interface {
-	antlr.ParserRuleContext
-	Identifier() antlr.TerminalNode
-}
-
 type WdlVisitor struct {
 	// Let's move away from the generated interface which is ambiguous with
 	// typing. This way we'd lose some functionality such as tree.Accept(v),
@@ -55,11 +50,6 @@ func (v *WdlVisitor) Visit(tree antlr.ParseTree) interface{} {
 func (v *WdlVisitor) VisitChildren(node antlr.RuleNode) interface{}     { return nil }
 func (v *WdlVisitor) VisitTerminal(node antlr.TerminalNode) interface{} { return nil }
 func (v *WdlVisitor) VisitErrorNode(node antlr.ErrorNode) interface{}   { return nil }
-
-// VisitIdentifier is a special visitor that returns the identifier that is under the given context.
-func (v *WdlVisitor) VisitIdentifier(ctx ContainsIdentifierContext) domain.Identifier {
-	return domain.Identifier(ctx.Identifier().GetText())
-}
 
 // func (v *WdlVisitor) VisitMap_type(ctx *parsers.Map_typeContext) interface{} {
 // 	return v.VisitChildren(ctx)
@@ -284,33 +274,41 @@ func (v *WdlVisitor) VisitVersion(ctx domain.IVersionContext) string {
 	return version
 }
 
-func (v *WdlVisitor) VisitImport_alias(ctx domain.IImport_aliasContext) interface{} {
-	return v.VisitChildren(ctx)
+// VisitImport_alias returns the import alias as a mapping from the original
+// identifer -> the aliased identifier. This is a terminal operation.
+func (v *WdlVisitor) VisitImport_alias(ctx domain.IImport_aliasContext) (domain.Identifier, domain.Identifier) {
+	return domain.Identifier(ctx.Identifier(0).GetText()),
+		domain.Identifier(ctx.Identifier(1).GetText())
 }
 
-func (v *WdlVisitor) VisitImport_as(ctx domain.IImport_asContext) interface{} {
-	return v.VisitChildren(ctx)
+// VisitImport_as returns the identifier that refers to the import. This is a terminal operation.
+func (v *WdlVisitor) VisitImport_as(ctx domain.IImport_asContext) domain.Identifier {
+	return domain.Identifier(ctx.Identifier().GetText())
 }
 
 func (v *WdlVisitor) VisitImport_doc(ctx domain.IImport_docContext) domain.Import {
 	var url string
-	var as domain.Identifier // optional
-	// var aliases []domain.ImportAlias
+	var as domain.Identifier                             // optional
+	aliases := map[domain.Identifier]domain.Identifier{} // optional
 
 	for _, child := range ctx.GetChildren() {
 		switch tt := child.(type) {
 		case domain.IStringContext:
 			url = v.VisitString(tt)
 		case domain.IImport_asContext:
-			as = v.VisitIdentifier(tt)
+			as = v.VisitImport_as(tt)
+		case domain.IImport_aliasContext:
+			original, alias := v.VisitImport_alias(tt)
+			aliases[original] = alias
 		default:
 			v.Reporter.NotImplemented(reflect.TypeOf(tt))
 		}
 	}
 
 	return domain.Import{
-		Url: url,
-		As:  as,
+		Url:     url,
+		As:      as,
+		Aliases: aliases,
 	}
 }
 

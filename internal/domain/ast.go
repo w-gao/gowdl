@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"encoding/json"
 	"fmt"
 	"regexp"
 )
@@ -26,28 +27,27 @@ type Document struct {
 	Version  string    `json:"version"`
 	Workflow *Workflow `json:"workflow,omitempty"` // optional
 
-	Imports []Import `json:"imports,omitempty"`
-	Structs []Struct `json:"structs,omitempty"`
-	Tasks   []Task   `json:"tasks,omitempty"`
+	Imports []Import `json:"imports,omitempty"` // optional
+	Structs []Struct `json:"structs,omitempty"` // optional
+	Tasks   []Task   `json:"tasks,omitempty"`   // optional
 }
 
 func (this Document) String() string {
-	return fmt.Sprintf("Document<version=%s,imports=%q,structs=%q,tasks=%q>", this.Version, this.Imports, this.Structs, this.Tasks)
+	out, err := json.Marshal(this)
+	if err != nil {
+		return "Document<failed to serialize>"
+	}
+
+	return fmt.Sprintf("Document<%s>", out)
 }
 
 type Workflow struct {
 }
 
 type Import struct {
-	Url string     `json:"url"`
-	As  Identifier `json:"as,omitempty"`
-
-	// aliases for WDL structs
-	Aliases map[string]string `json:"aliases,omitempty"`
-}
-
-func (this Import) String() string {
-	return fmt.Sprintf("Import<url=%s, as=%s>", this.Url, this.As)
+	Url     string                    `json:"url"`
+	As      Identifier                `json:"as,omitempty"`      // optional
+	Aliases map[Identifier]Identifier `json:"aliases,omitempty"` // optional
 }
 
 type Task struct {

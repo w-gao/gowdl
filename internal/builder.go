@@ -22,7 +22,7 @@ func NewWdlBuilder(url string) (*WdlBuilder, error) {
 	}
 
 	if !IsIn(version, []string{"1.0", "1.1", "development"}) {
-		return nil, fmt.Errorf("Unsupported WDL version: %s", version)
+		return nil, fmt.Errorf("Unrecognized WDL version: %s", version)
 	}
 
 	maxImportDepth := 10
@@ -50,7 +50,6 @@ func (this *WdlBuilder) ParseDocument() (*domain.Document, error) {
 	case "development":
 		return nil, fmt.Errorf("The development version is not supported yet")
 	default:
-		// This shouldn't happen since we validate in the constructor, but just in case.
 		return nil, fmt.Errorf("Unknown WDL version: %v", this.Version)
 	}
 
