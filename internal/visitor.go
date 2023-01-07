@@ -16,6 +16,15 @@ type IVisitorReporter interface {
 	NotImplemented(fmt.Stringer)
 }
 
+type CustomErrorListener struct {
+	*antlr.DefaultErrorListener
+	Errors []error
+}
+
+func (c *CustomErrorListener) SyntaxError(recognizer antlr.Recognizer, offendingSymbol interface{}, line, column int, msg string, e antlr.RecognitionException) {
+	c.Errors = append(c.Errors, fmt.Errorf("SyntaxError: line %d:%d %s", line, column, msg))
+}
+
 type WdlVisitor struct {
 	// Let's move away from the generated interface which is ambiguous with
 	// typing. This way we'd lose some functionality such as tree.Accept(v),
@@ -23,13 +32,15 @@ type WdlVisitor struct {
 	// interface, but we mitigate that with the Visit() function.
 	// parsers.BaseWdlV1ParserVisitor
 
+	Url      string
 	Version  string
 	Reporter IVisitorReporter
 }
 
-func NewWdlVisitor(version string) *WdlVisitor {
+func NewWdlVisitor(url string, version string) *WdlVisitor {
 	reporter := &impl.FmtReporter{}
 	return &WdlVisitor{
+		Url:      url,
 		Version:  version,
 		Reporter: reporter,
 	}
@@ -495,6 +506,7 @@ func (v *WdlVisitor) VisitDocument(ctx domain.IDocumentContext) *domain.Document
 	}
 
 	return &domain.Document{
+		Url:      v.Url,
 		Version:  version,
 		Workflow: workflow,
 		Imports:  imports,

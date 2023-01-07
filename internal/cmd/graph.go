@@ -27,6 +27,7 @@ func init() {
 
 			if err != nil {
 				fmt.Printf("Failed to parse the WDL document. Reason: %v\n", err)
+				return
 			}
 
 			fmt.Printf("%v\n", document)

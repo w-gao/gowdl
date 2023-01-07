@@ -36,22 +36,36 @@ func (this *WdlBuilder) ParseDocument() (*domain.Document, error) {
 		return nil, fmt.Errorf("Failed to read from URI: %w", err)
 	}
 
-	version := this.Version
-	visitor := NewWdlVisitor(version)
-	var document *domain.Document
+	visitor := NewWdlVisitor(this.Url, this.Version)
+	errListener := &CustomErrorListener{}
+	var tree domain.IDocumentContext
 
-	switch version {
+	switch this.Version {
 	case "1.0":
 		p := parsers.NewWdlV1_0Parser(data)
-		document = visitor.VisitDocument(p.Document())
+		p.RemoveErrorListeners()
+		p.AddErrorListener(errListener)
+		tree = p.Document()
 	case "1.1":
 		p := parsers.NewWdlV1_1Parser(data)
-		document = visitor.VisitDocument(p.Document())
+		p.RemoveErrorListeners()
+		p.AddErrorListener(errListener)
+		tree = p.Document()
 	case "development":
 		return nil, fmt.Errorf("The development version is not supported yet")
 	default:
 		return nil, fmt.Errorf("Unknown WDL version: %v", this.Version)
 	}
+
+	if len(errListener.Errors) > 0 {
+		for _, err := range errListener.Errors {
+			fmt.Printf("%v\n", err)
+		}
+
+		return nil, fmt.Errorf("SyntaxError detected. Please fix your WDL.")
+	}
+
+	document := visitor.VisitDocument(tree)
 
 	return document, nil
 }

@@ -24,6 +24,9 @@ func (this Identifier) IsValid() bool {
 }
 
 type Document struct {
+	// This is not part of WDL, but is useful to keep track of.
+	Url string `json:"url"`
+
 	Version  string    `json:"version"`
 	Workflow *Workflow `json:"workflow,omitempty"` // optional
 
