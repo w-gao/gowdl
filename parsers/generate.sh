@@ -1,5 +1,4 @@
 #!/bin/bash
-PACKAGE='parsers'
 ANTLR4_JAR='antlr-4.11.1-complete.jar'
 
 
@@ -12,5 +11,11 @@ fi
 
 
 # Generate parsers
-java -jar $ANTLR4_JAR -Dlanguage=Go -listener -visitor -package $PACKAGE *.g4
+for f in v*; do
+    if [ -d "$f" ]; then
+        echo "Generating parsers for $f..."
+        java -jar $ANTLR4_JAR -Dlanguage=Go -no-listener -visitor -package $f $f/*.g4
+    fi
+done
+
 echo "Parsers generated!"

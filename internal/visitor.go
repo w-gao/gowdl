@@ -8,7 +8,6 @@ import (
 	"github.com/antlr/antlr4/runtime/Go/antlr/v4"
 	"github.com/w-gao/gowdl/internal/domain"
 	"github.com/w-gao/gowdl/internal/impl"
-	"github.com/w-gao/gowdl/parsers"
 )
 
 type IVisitorReporter interface {
@@ -57,7 +56,7 @@ func (v *WdlVisitor) Visit(tree antlr.ParseTree) interface{} {
 	// 		interface and use it everywhere instead.
 
 	switch t := tree.(type) {
-	case parsers.IDocumentContext:
+	case domain.IDocumentContext:
 		return v.VisitDocument(t)
 	default:
 		return nil

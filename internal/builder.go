@@ -6,7 +6,7 @@ import (
 
 	"github.com/antlr/antlr4/runtime/Go/antlr/v4"
 	"github.com/w-gao/gowdl/internal/domain"
-	"github.com/w-gao/gowdl/parsers"
+	"github.com/w-gao/gowdl/parsers/v1_0"
 )
 
 type WdlBuilder struct {
@@ -39,9 +39,9 @@ func (this *WdlBuilder) ParseDocument() error {
 	}
 
 	input := antlr.NewInputStream(data)
-	lexer := parsers.NewWdlV1Lexer(input)
+	lexer := v1_0.NewWdlV1Lexer(input)
 	stream := antlr.NewCommonTokenStream(lexer, 0)
-	p := parsers.NewWdlV1Parser(stream)
+	p := v1_0.NewWdlV1Parser(stream)
 	// p.AddErrorListener(antlr.NewDiagnosticErrorListener(true))
 	p.BuildParseTrees = true
 
