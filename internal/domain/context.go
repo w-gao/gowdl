@@ -48,12 +48,16 @@ type IWdl_typeContext interface {
 type IUnbound_declsContext interface {
 	antlr.ParserRuleContext
 
+	Identifier() antlr.TerminalNode
+
 	GetParser() antlr.Parser
 	IsUnbound_declsContext()
 }
 
 type IBound_declsContext interface {
 	antlr.ParserRuleContext
+
+	Identifier() antlr.TerminalNode
 
 	GetParser() antlr.Parser
 	IsBound_declsContext()

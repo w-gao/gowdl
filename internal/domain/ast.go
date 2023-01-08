@@ -45,7 +45,8 @@ func (this Document) String() string {
 }
 
 type Workflow struct {
-	Name Identifier `json:"name"`
+	Name   Identifier    `json:"name"`
+	Inputs []Declaration `json:"inputs,omitempty"`
 }
 
 type Import struct {
@@ -61,7 +62,27 @@ type Task struct {
 type Struct struct {
 }
 
-type Expression interface{}
+type Type struct {
+	Optional bool `json:"optional,omitempty"`
+}
 
-type String struct {
+type ArrayType struct {
+}
+
+// Declaration can be bounded (assigned to expression) or unbounded (no assignment).
+type Declaration struct {
+	Type       Type        `json:"type"`
+	Identifier Identifier  `json:"identifier"`
+	Expr       *Expression `json:"expr,omitempty"`
+}
+
+type Any interface{}
+
+type IExpression interface {
+	// Eval should exist for the parsed runtime DAG, not here.
+	// Eval(map[string]Any) Any
+}
+
+type Expression struct {
+	test string
 }

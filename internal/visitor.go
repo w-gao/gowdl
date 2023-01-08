@@ -80,21 +80,64 @@ func (v *WdlVisitor) VisitErrorNode(node antlr.ErrorNode) interface{}   { return
 // 	return v.VisitChildren(ctx)
 // }
 
-// func (v *WdlVisitor) VisitWdl_type(ctx *parsers.Wdl_typeContext) interface{} {
-// 	return v.VisitChildren(ctx)
-// }
+func (v *WdlVisitor) VisitWdl_type(ctx domain.IWdl_typeContext) domain.Type {
+	// TODO: parse WDL type
+	return domain.Type{
+		Optional: true,
+	}
+}
 
-// func (v *WdlVisitor) VisitUnbound_decls(ctx *parsers.Unbound_declsContext) interface{} {
-// 	return v.VisitChildren(ctx)
-// }
+func (v *WdlVisitor) VisitUnbound_decls(ctx domain.IUnbound_declsContext) domain.Declaration {
+	identifier := domain.Identifier(ctx.Identifier().GetText())
+	var type_ domain.Type
 
-// func (v *WdlVisitor) VisitBound_decls(ctx *parsers.Bound_declsContext) interface{} {
-// 	return v.VisitChildren(ctx)
-// }
+	for _, child := range ctx.GetChildren() {
+		switch tt := child.(type) {
+		case domain.IWdl_typeContext:
+			type_ = v.VisitWdl_type(tt)
+		}
+	}
 
-// func (v *WdlVisitor) VisitAny_decls(ctx *parsers.Any_declsContext) interface{} {
-// 	return v.VisitChildren(ctx)
-// }
+	return domain.Declaration{
+		Type:       type_,
+		Identifier: identifier,
+		Expr:       nil,
+	}
+}
+
+func (v *WdlVisitor) VisitBound_decls(ctx domain.IBound_declsContext) domain.Declaration {
+	identifier := domain.Identifier(ctx.Identifier().GetText())
+	var type_ domain.Type
+	var expr domain.Expression
+
+	for _, child := range ctx.GetChildren() {
+		switch tt := child.(type) {
+		case domain.IWdl_typeContext:
+			type_ = v.VisitWdl_type(tt)
+		case domain.IExprContext:
+			expr = v.VisitExpr(tt)
+		}
+	}
+
+	return domain.Declaration{
+		Type:       type_,
+		Identifier: identifier,
+		Expr:       &expr,
+	}
+}
+
+func (v *WdlVisitor) VisitAny_decls(ctx domain.IAny_declsContext) domain.Declaration {
+	// First child _should_ be the declaration.
+	switch tt := ctx.GetChild(0).(type) {
+	case domain.IBound_declsContext:
+		return v.VisitBound_decls(tt)
+	case domain.IUnbound_declsContext:
+		return v.VisitUnbound_decls(tt)
+	}
+
+	// This should not happen. Should we panic?
+	return domain.Declaration{}
+}
 
 // func (v *WdlVisitor) VisitNumber(ctx *parsers.NumberContext) interface{} {
 // 	return v.VisitChildren(ctx)
@@ -140,9 +183,9 @@ func (v *WdlVisitor) VisitString(ctx domain.IStringContext) string { // interfac
 // 	return v.VisitChildren(ctx)
 // }
 
-// func (v *WdlVisitor) VisitExpr(ctx *parsers.ExprContext) interface{} {
-// 	return v.VisitChildren(ctx)
-// }
+func (v *WdlVisitor) VisitExpr(ctx domain.IExprContext) domain.Expression {
+	return domain.Expression{}
+}
 
 // func (v *WdlVisitor) VisitInfix0(ctx *parsers.Infix0Context) interface{} {
 // 	return v.VisitChildren(ctx)
@@ -453,8 +496,26 @@ func (v *WdlVisitor) VisitInner_workflow_element(ctx domain.IInner_workflow_elem
 // 	return v.VisitChildren(ctx)
 // }
 
-func (v *WdlVisitor) VisitWorkflow_input(ctx domain.IWorkflow_inputContext) interface{} {
-	return nil
+func (v *WdlVisitor) VisitWorkflow_input(ctx domain.IWorkflow_inputContext) []domain.Declaration {
+	len := 0
+	for _, ctx := range ctx.GetChildren() {
+		if _, ok := ctx.(domain.IAny_declsContext); ok {
+			len++
+		}
+	}
+
+	inputs := make([]domain.Declaration, len)
+	idx := 0
+
+	for _, child := range ctx.GetChildren() {
+		switch tt := child.(type) {
+		case domain.IAny_declsContext:
+			inputs[idx] = v.VisitAny_decls(tt)
+			idx++
+		}
+	}
+
+	return inputs
 }
 
 func (v *WdlVisitor) VisitWorkflow_output(ctx domain.IWorkflow_outputContext) interface{} {
@@ -484,6 +545,8 @@ func (v *WdlVisitor) VisitWorkflow_output(ctx domain.IWorkflow_outputContext) in
 func (v *WdlVisitor) VisitWorkflow(ctx domain.IWorkflowContext) *domain.Workflow {
 	name := domain.Identifier(ctx.Identifier().GetText())
 
+	var inputs []domain.Declaration
+
 	for _, child := range ctx.GetChildren() {
 		switch tt := child.(type) {
 		case domain.IWorkflow_elementContext:
@@ -491,7 +554,7 @@ func (v *WdlVisitor) VisitWorkflow(ctx domain.IWorkflowContext) *domain.Workflow
 			// TODO: we need to support expression and declaration first.
 			switch tt := tt.GetChild(0).(type) {
 			case domain.IWorkflow_inputContext:
-				v.Reporter.Warn(ctx, "IWorkflow_inputContext")
+				inputs = v.VisitWorkflow_input(tt)
 			case domain.IInner_workflow_elementContext:
 				v.Reporter.Warn(ctx, "IInner_workflow_elementContext")
 			case domain.IWorkflow_outputContext:
@@ -503,7 +566,8 @@ func (v *WdlVisitor) VisitWorkflow(ctx domain.IWorkflowContext) *domain.Workflow
 	}
 
 	return &domain.Workflow{
-		Name: name,
+		Name:   name,
+		Inputs: inputs,
 	}
 }
 
