@@ -2,6 +2,7 @@ package impl
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/antlr/antlr4/runtime/Go/antlr/v4"
 )
@@ -10,13 +11,13 @@ import (
 type FmtReporter struct{}
 
 func (r *FmtReporter) Warn(ctx antlr.ParserRuleContext, warn string) {
-	fmt.Printf("WARN: %v\n", warn)
+	fmt.Fprintf(os.Stderr, "WARN: %v\n", warn)
 }
 
 func (r *FmtReporter) Error(ctx antlr.ParserRuleContext, err error) {
-	fmt.Printf("Error: %v\n", err)
+	fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 }
 
 func (r *FmtReporter) NotImplemented(message fmt.Stringer) {
-	fmt.Printf("NotImplemented: %v\n", message)
+	fmt.Fprintf(os.Stderr, "NotImplemented: %v\n", message)
 }

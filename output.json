@@ -1,0 +1,132 @@
+[
+    {
+        "url": "https://raw.githubusercontent.com/broadinstitute/gatk-sv/master/wdl/AnnoRdPeSr.wdl",
+        "version": "1.0",
+        "workflow": {},
+        "imports": [
+            {
+                "url": "Structs.wdl"
+            },
+            {
+                "url": "VaPoR.wdl",
+                "as": "vapor"
+            },
+            {
+                "url": "Duphold.wdl",
+                "as": "duphold"
+            },
+            {
+                "url": "RdPeSrAnno.wdl",
+                "as": "rdpesr"
+            }
+        ]
+    },
+    {
+        "url": "https://raw.githubusercontent.com/broadinstitute/gatk-sv/master/wdl/Structs.wdl",
+        "version": "1.0"
+    },
+    {
+        "url": "https://raw.githubusercontent.com/broadinstitute/gatk-sv/master/wdl/VaPoR.wdl",
+        "version": "1.0",
+        "workflow": {},
+        "imports": [
+            {
+                "url": "Structs.wdl"
+            },
+            {
+                "url": "TasksBenchmark.wdl",
+                "as": "mini_tasks"
+            },
+            {
+                "url": "VaPoRBedPerContig.wdl",
+                "as": "vapor_bed"
+            },
+            {
+                "url": "VaPoRVcf.wdl",
+                "as": "vapor_vcf"
+            }
+        ]
+    },
+    {
+        "url": "https://raw.githubusercontent.com/broadinstitute/gatk-sv/master/wdl/Duphold.wdl",
+        "version": "1.0",
+        "workflow": {},
+        "imports": [
+            {
+                "url": "Structs.wdl"
+            },
+            {
+                "url": "TasksMakeCohortVcf.wdl",
+                "as": "MiniTasks"
+            },
+            {
+                "url": "TasksBenchmark.wdl",
+                "as": "tasks10"
+            }
+        ]
+    },
+    {
+        "url": "https://raw.githubusercontent.com/broadinstitute/gatk-sv/master/wdl/RdPeSrAnno.wdl",
+        "version": "1.0",
+        "workflow": {},
+        "imports": [
+            {
+                "url": "Structs.wdl"
+            },
+            {
+                "url": "TasksMakeCohortVcf.wdl",
+                "as": "MiniTasks"
+            },
+            {
+                "url": "TasksBenchmark.wdl",
+                "as": "tasks10"
+            }
+        ]
+    },
+    {
+        "url": "https://raw.githubusercontent.com/broadinstitute/gatk-sv/master/wdl/TasksBenchmark.wdl",
+        "version": "1.0",
+        "imports": [
+            {
+                "url": "Structs.wdl"
+            }
+        ]
+    },
+    {
+        "url": "https://raw.githubusercontent.com/broadinstitute/gatk-sv/master/wdl/VaPoRBedPerContig.wdl",
+        "version": "1.0",
+        "workflow": {},
+        "imports": [
+            {
+                "url": "Structs.wdl"
+            },
+            {
+                "url": "TasksBenchmark.wdl",
+                "as": "tasks10"
+            }
+        ]
+    },
+    {
+        "url": "https://raw.githubusercontent.com/broadinstitute/gatk-sv/master/wdl/VaPoRVcf.wdl",
+        "version": "1.0",
+        "workflow": {},
+        "imports": [
+            {
+                "url": "Structs.wdl"
+            },
+            {
+                "url": "TasksBenchmark.wdl",
+                "as": "tasks10"
+            }
+        ]
+    },
+    {
+        "url": "https://raw.githubusercontent.com/broadinstitute/gatk-sv/master/wdl/TasksMakeCohortVcf.wdl",
+        "version": "1.0",
+        "imports": [
+            {
+                "url": "Structs.wdl"
+            }
+        ]
+    }
+]

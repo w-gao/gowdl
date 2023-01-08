@@ -8,9 +8,7 @@ import (
 )
 
 type WdlBuilder struct {
-	Url            string
-	MaxImportDepth int
-
+	Url      string
 	Version  string
 	Document *domain.Document
 }
@@ -25,8 +23,7 @@ func NewWdlBuilder(url string) (*WdlBuilder, error) {
 		return nil, fmt.Errorf("Unrecognized WDL version: %s", version)
 	}
 
-	maxImportDepth := 10
-	builder := &WdlBuilder{Url: url, MaxImportDepth: maxImportDepth, Version: version}
+	builder := &WdlBuilder{Url: url, Version: version}
 	return builder, nil
 }
 
