@@ -48,9 +48,10 @@ type Workflow struct {
 }
 
 type Import struct {
-	Url     string                    `json:"url"`
-	As      Identifier                `json:"as,omitempty"`      // optional
-	Aliases map[Identifier]Identifier `json:"aliases,omitempty"` // optional
+	Url         string                    `json:"url"`
+	AbsoluteUrl string                    `json:"absoluteUrl,omitempty"` // not part of WDL, but useful when resolving imports
+	As          Identifier                `json:"as,omitempty"`          // optional
+	Aliases     map[Identifier]Identifier `json:"aliases,omitempty"`     // optional
 }
 
 type Task struct {

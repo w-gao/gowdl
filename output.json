@@ -5,18 +5,22 @@
         "workflow": {},
         "imports": [
             {
-                "url": "Structs.wdl"
+                "url": "Structs.wdl",
+                "absoluteUrl": "https://raw.githubusercontent.com/broadinstitute/gatk-sv/master/wdl/Structs.wdl"
             },
             {
                 "url": "VaPoR.wdl",
+                "absoluteUrl": "https://raw.githubusercontent.com/broadinstitute/gatk-sv/master/wdl/VaPoR.wdl",
                 "as": "vapor"
             },
             {
                 "url": "Duphold.wdl",
+                "absoluteUrl": "https://raw.githubusercontent.com/broadinstitute/gatk-sv/master/wdl/Duphold.wdl",
                 "as": "duphold"
             },
             {
                 "url": "RdPeSrAnno.wdl",
+                "absoluteUrl": "https://raw.githubusercontent.com/broadinstitute/gatk-sv/master/wdl/RdPeSrAnno.wdl",
                 "as": "rdpesr"
             }
         ]
@@ -31,18 +35,22 @@
         "workflow": {},
         "imports": [
             {
-                "url": "Structs.wdl"
+                "url": "Structs.wdl",
+                "absoluteUrl": "https://raw.githubusercontent.com/broadinstitute/gatk-sv/master/wdl/Structs.wdl"
             },
             {
                 "url": "TasksBenchmark.wdl",
+                "absoluteUrl": "https://raw.githubusercontent.com/broadinstitute/gatk-sv/master/wdl/TasksBenchmark.wdl",
                 "as": "mini_tasks"
             },
             {
                 "url": "VaPoRBedPerContig.wdl",
+                "absoluteUrl": "https://raw.githubusercontent.com/broadinstitute/gatk-sv/master/wdl/VaPoRBedPerContig.wdl",
                 "as": "vapor_bed"
             },
             {
                 "url": "VaPoRVcf.wdl",
+                "absoluteUrl": "https://raw.githubusercontent.com/broadinstitute/gatk-sv/master/wdl/VaPoRVcf.wdl",
                 "as": "vapor_vcf"
             }
         ]
@@ -53,14 +61,17 @@
         "workflow": {},
         "imports": [
             {
-                "url": "Structs.wdl"
+                "url": "Structs.wdl",
+                "absoluteUrl": "https://raw.githubusercontent.com/broadinstitute/gatk-sv/master/wdl/Structs.wdl"
             },
             {
                 "url": "TasksMakeCohortVcf.wdl",
+                "absoluteUrl": "https://raw.githubusercontent.com/broadinstitute/gatk-sv/master/wdl/TasksMakeCohortVcf.wdl",
                 "as": "MiniTasks"
             },
             {
                 "url": "TasksBenchmark.wdl",
+                "absoluteUrl": "https://raw.githubusercontent.com/broadinstitute/gatk-sv/master/wdl/TasksBenchmark.wdl",
                 "as": "tasks10"
             }
         ]
@@ -71,14 +82,17 @@
         "workflow": {},
         "imports": [
             {
-                "url": "Structs.wdl"
+                "url": "Structs.wdl",
+                "absoluteUrl": "https://raw.githubusercontent.com/broadinstitute/gatk-sv/master/wdl/Structs.wdl"
             },
             {
                 "url": "TasksMakeCohortVcf.wdl",
+                "absoluteUrl": "https://raw.githubusercontent.com/broadinstitute/gatk-sv/master/wdl/TasksMakeCohortVcf.wdl",
                 "as": "MiniTasks"
             },
             {
                 "url": "TasksBenchmark.wdl",
+                "absoluteUrl": "https://raw.githubusercontent.com/broadinstitute/gatk-sv/master/wdl/TasksBenchmark.wdl",
                 "as": "tasks10"
             }
         ]
@@ -88,7 +102,8 @@
         "version": "1.0",
         "imports": [
             {
-                "url": "Structs.wdl"
+                "url": "Structs.wdl",
+                "absoluteUrl": "https://raw.githubusercontent.com/broadinstitute/gatk-sv/master/wdl/Structs.wdl"
             }
         ]
     },
@@ -98,10 +113,12 @@
         "workflow": {},
         "imports": [
             {
-                "url": "Structs.wdl"
+                "url": "Structs.wdl",
+                "absoluteUrl": "https://raw.githubusercontent.com/broadinstitute/gatk-sv/master/wdl/Structs.wdl"
             },
             {
                 "url": "TasksBenchmark.wdl",
+                "absoluteUrl": "https://raw.githubusercontent.com/broadinstitute/gatk-sv/master/wdl/TasksBenchmark.wdl",
                 "as": "tasks10"
             }
         ]
@@ -112,10 +129,12 @@
         "workflow": {},
         "imports": [
             {
-                "url": "Structs.wdl"
+                "url": "Structs.wdl",
+                "absoluteUrl": "https://raw.githubusercontent.com/broadinstitute/gatk-sv/master/wdl/Structs.wdl"
             },
             {
                 "url": "TasksBenchmark.wdl",
+                "absoluteUrl": "https://raw.githubusercontent.com/broadinstitute/gatk-sv/master/wdl/TasksBenchmark.wdl",
                 "as": "tasks10"
             }
         ]
@@ -125,7 +144,8 @@
         "version": "1.0",
         "imports": [
             {
-                "url": "Structs.wdl"
+                "url": "Structs.wdl",
+                "absoluteUrl": "https://raw.githubusercontent.com/broadinstitute/gatk-sv/master/wdl/Structs.wdl"
             }
         ]
     }

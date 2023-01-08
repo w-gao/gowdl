@@ -2,6 +2,8 @@ package internal
 
 import (
 	"fmt"
+	urlparse "net/url"
+	"path"
 	"reflect"
 	"strings"
 
@@ -316,10 +318,22 @@ func (v *WdlVisitor) VisitImport_doc(ctx domain.IImport_docContext) domain.Impor
 		}
 	}
 
+	var absoluteUrl string
+	if strings.Contains(url, "://") {
+		absoluteUrl = url
+	}
+
+	u, err := urlparse.Parse(v.Url)
+	if err == nil {
+		u.Path = path.Join(path.Dir(u.Path), url)
+		absoluteUrl = u.String()
+	}
+
 	return domain.Import{
-		Url:     url,
-		As:      as,
-		Aliases: aliases,
+		Url:         url,
+		AbsoluteUrl: absoluteUrl,
+		As:          as,
+		Aliases:     aliases,
 	}
 }
 
