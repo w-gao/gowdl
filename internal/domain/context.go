@@ -6,6 +6,10 @@ import (
 
 // Interfaces to support dynamic dispatch for different WDL versions.
 
+// Limitation: we can not dynamically support functions that return another context (or array of
+// contexts) Instead, the user should loop through ctx.GetChildren() and cast to child contexts
+// there. This is the more efficient way too because it will only loop through the children once.
+
 type IMap_typeContext interface {
 	antlr.ParserRuleContext
 
@@ -438,6 +442,8 @@ type IWorkflow_elementContext interface {
 
 type IWorkflowContext interface {
 	antlr.ParserRuleContext
+
+	Identifier() antlr.TerminalNode
 
 	GetParser() antlr.Parser
 	IsWorkflowContext()

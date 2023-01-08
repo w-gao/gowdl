@@ -417,9 +417,9 @@ func (v *WdlVisitor) VisitImport_doc(ctx domain.IImport_docContext) domain.Impor
 // 	return v.VisitChildren(ctx)
 // }
 
-// func (v *WdlVisitor) VisitInner_workflow_element(ctx *parsers.Inner_workflow_elementContext) interface{} {
-// 	return v.VisitChildren(ctx)
-// }
+func (v *WdlVisitor) VisitInner_workflow_element(ctx domain.IInner_workflow_elementContext) interface{} {
+	return nil
+}
 
 // func (v *WdlVisitor) VisitCall_alias(ctx *parsers.Call_aliasContext) interface{} {
 // 	return v.VisitChildren(ctx)
@@ -453,13 +453,13 @@ func (v *WdlVisitor) VisitImport_doc(ctx domain.IImport_docContext) domain.Impor
 // 	return v.VisitChildren(ctx)
 // }
 
-// func (v *WdlVisitor) VisitWorkflow_input(ctx *parsers.Workflow_inputContext) interface{} {
-// 	return v.VisitChildren(ctx)
-// }
+func (v *WdlVisitor) VisitWorkflow_input(ctx domain.IWorkflow_inputContext) interface{} {
+	return nil
+}
 
-// func (v *WdlVisitor) VisitWorkflow_output(ctx *parsers.Workflow_outputContext) interface{} {
-// 	return v.VisitChildren(ctx)
-// }
+func (v *WdlVisitor) VisitWorkflow_output(ctx domain.IWorkflow_outputContext) interface{} {
+	return nil
+}
 
 // func (v *WdlVisitor) VisitInput(ctx *parsers.InputContext) interface{} {
 // 	return v.VisitChildren(ctx)
@@ -482,12 +482,34 @@ func (v *WdlVisitor) VisitImport_doc(ctx domain.IImport_docContext) domain.Impor
 // }
 
 func (v *WdlVisitor) VisitWorkflow(ctx domain.IWorkflowContext) *domain.Workflow {
-	// return nil
-	return &domain.Workflow{}
+	name := domain.Identifier(ctx.Identifier().GetText())
+
+	for _, child := range ctx.GetChildren() {
+		switch tt := child.(type) {
+		case domain.IWorkflow_elementContext:
+			// Let's flatten this.
+			// TODO: we need to support expression and declaration first.
+			switch tt := tt.GetChild(0).(type) {
+			case domain.IWorkflow_inputContext:
+				v.Reporter.Warn(ctx, "IWorkflow_inputContext")
+			case domain.IInner_workflow_elementContext:
+				v.Reporter.Warn(ctx, "IInner_workflow_elementContext")
+			case domain.IWorkflow_outputContext:
+				v.Reporter.Warn(ctx, "IWorkflow_outputContext")
+			default:
+				v.Reporter.NotImplemented(reflect.TypeOf(tt))
+			}
+		}
+	}
+
+	return &domain.Workflow{
+		Name: name,
+	}
 }
 
 func (v *WdlVisitor) VisitDocument_element(ctx domain.IDocument_elementContext) interface{} {
-	v.Reporter.Warn(ctx, "VisitDocument_element is deprecated")
+	// We've flattened this structure.
+	v.Reporter.Warn(ctx, "VisitDocument_element should not be called.")
 	return nil
 }
 

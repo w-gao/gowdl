@@ -45,6 +45,7 @@ func (this Document) String() string {
 }
 
 type Workflow struct {
+	Name Identifier `json:"name"`
 }
 
 type Import struct {
