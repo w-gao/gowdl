@@ -62,6 +62,24 @@ func (s *VisitorTestSuite) TestVisitExpr() {
 		s.T().Log(string(out))
 	})
 
+	s.Run("Land, right is BinaryOp (infix 4)", func() {
+		expr := s.parseExpr("5 && 5 + 3")
+		out, _ := json.MarshalIndent(expr, "", "    ")
+		s.T().Log(string(out))
+	})
+
+	s.Run("Land, right is BinaryOp (infix 5)", func() {
+		expr := s.parseExpr("5 && 5 / 3")
+		out, _ := json.MarshalIndent(expr, "", "    ")
+		s.T().Log(string(out))
+	})
+
+	s.Run("BinaryOp (infix 4 and 5)", func() {
+		expr := s.parseExpr("5 + 5 / 3")
+		out, _ := json.MarshalIndent(expr, "", "    ")
+		s.T().Log(string(out))
+	})
+
 }
 
 func TestVisitorTestSuite(t *testing.T) {

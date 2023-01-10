@@ -184,7 +184,6 @@ func (v *WdlVisitor) VisitString(ctx domain.IStringContext) string { // interfac
 // }
 
 func (v *WdlVisitor) VisitExpr(ctx domain.IExprContext) domain.IExpression {
-	fmt.Println("VisitExpr")
 	infixCtx := ctx.GetChild(0).(domain.IExpr_infixContext)
 
 	// 	expr
@@ -200,7 +199,6 @@ func (v *WdlVisitor) VisitExpr(ctx domain.IExprContext) domain.IExpression {
 }
 
 func (v *WdlVisitor) VisitInfix0(ctx domain.IExpr_infix0Context) domain.IExpression {
-	fmt.Println("VisitInfix0")
 
 	// expr_infix0
 	// : expr_infix0 OR expr_infix1 #lor
@@ -226,7 +224,6 @@ func (v *WdlVisitor) VisitInfix0(ctx domain.IExpr_infix0Context) domain.IExpress
 }
 
 func (v *WdlVisitor) VisitInfix1(ctx domain.IExpr_infix1Context) domain.IExpression {
-	fmt.Println("VisitInfix1")
 
 	// expr_infix1
 	// : expr_infix1 AND expr_infix2 #land
@@ -282,7 +279,7 @@ func (v *WdlVisitor) VisitInfix2(ctx domain.IExpr_infix2Context) domain.IExpress
 
 	return domain.NewComparisonExpr(
 		v.VisitInfix2(infix2Ctx), // left
-		op,
+		op,                       // operation
 		v.VisitInfix3(infix3Ctx), // right
 	)
 }
@@ -297,36 +294,64 @@ func (v *WdlVisitor) VisitInfix3(ctx domain.IExpr_infix3Context) domain.IExpress
 	// | expr_infix4 #infix4
 	// ;
 
-	return domain.NewUnknownExpr()
+	if count := ctx.GetChildCount(); count == 1 {
+		// No branching
+		infix4Ctx := ctx.GetChild(0).(domain.IExpr_infix4Context)
+		return v.VisitInfix4(infix4Ctx)
+	} else if count != 3 {
+		v.Reporter.Error(ctx, fmt.Errorf("infix3 contains unexpected number of children"))
+		return domain.NewUnknownExpr()
+	}
+
+	infix3Ctx := ctx.GetChild(0).(domain.IExpr_infix3Context) // 0
+	op := ctx.GetChild(1).(antlr.TerminalNode).GetText()      // 1
+	infix4Ctx := ctx.GetChild(2).(domain.IExpr_infix4Context) // 2
+
+	// `op` is one of []string{"+", "-"}.  We could further parse this, but string would be fine for now.
+
+	return domain.NewBinaryOpExpr(
+		v.VisitInfix3(infix3Ctx), // left
+		op,                       // operation
+		v.VisitInfix4(infix4Ctx), // right
+	)
 }
 
-// func (v *WdlVisitor) VisitAdd(ctx *parsers.AddContext) interface{} {
-// 	return v.VisitChildren(ctx)
-// }
+func (v *WdlVisitor) VisitInfix4(ctx domain.IExpr_infix4Context) domain.IExpression {
 
-// func (v *WdlVisitor) VisitSub(ctx *parsers.SubContext) interface{} {
-// 	return v.VisitChildren(ctx)
-// }
+	// multiplication, division, and mod
 
-// func (v *WdlVisitor) VisitInfix4(ctx *parsers.Infix4Context) interface{} {
-// 	return v.VisitChildren(ctx)
-// }
+	// expr_infix4
+	// : expr_infix4 STAR expr_infix5 #mul
+	// | expr_infix4 DIVIDE expr_infix5 #divide
+	// | expr_infix4 MOD expr_infix5 #mod
+	// | expr_infix5 #infix5
+	// ;
 
-// func (v *WdlVisitor) VisitMod(ctx *parsers.ModContext) interface{} {
-// 	return v.VisitChildren(ctx)
-// }
+	if count := ctx.GetChildCount(); count == 1 {
+		// No branching
+		infix5Ctx := ctx.GetChild(0).(domain.IExpr_infix5Context)
+		return v.VisitInfix5(infix5Ctx)
+	} else if count != 3 {
+		v.Reporter.Error(ctx, fmt.Errorf("infix4 contains unexpected number of children"))
+		return domain.NewUnknownExpr()
+	}
 
-// func (v *WdlVisitor) VisitMul(ctx *parsers.MulContext) interface{} {
-// 	return v.VisitChildren(ctx)
-// }
+	infix4Ctx := ctx.GetChild(0).(domain.IExpr_infix4Context) // 0
+	op := ctx.GetChild(1).(antlr.TerminalNode).GetText()      // 1
+	infix5Ctx := ctx.GetChild(2).(domain.IExpr_infix5Context) // 2
 
-// func (v *WdlVisitor) VisitDivide(ctx *parsers.DivideContext) interface{} {
-// 	return v.VisitChildren(ctx)
-// }
+	// `op` is one of []string{"*", "/", "%"}.  We could further parse this, but string would be fine for now.
 
-// func (v *WdlVisitor) VisitInfix5(ctx *parsers.Infix5Context) interface{} {
-// 	return v.VisitChildren(ctx)
-// }
+	return domain.NewBinaryOpExpr(
+		v.VisitInfix4(infix4Ctx), // left
+		op,                       // operation
+		v.VisitInfix5(infix5Ctx), // right
+	)
+}
+
+func (v *WdlVisitor) VisitInfix5(ctx domain.IExpr_infix5Context) domain.IExpression {
+	return domain.NewUnknownExpr()
+}
 
 // func (v *WdlVisitor) VisitExpr_infix5(ctx *parsers.Expr_infix5Context) interface{} {
 // 	return v.VisitChildren(ctx)

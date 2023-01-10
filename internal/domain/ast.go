@@ -141,3 +141,19 @@ func NewComparisonExpr(left IExpression, op string, right IExpression) Compariso
 func (this ComparisonExpr) GetType() string {
 	return this.Type
 }
+
+// BinaryOpExpr is a binary operation expression ( + and - ).
+type BinaryOpExpr struct {
+	Type      string      `json:"type"`
+	Left      IExpression `json:"left"`
+	Operation string      `json:"op"`
+	Right     IExpression `json:"right"`
+}
+
+func NewBinaryOpExpr(left IExpression, op string, right IExpression) BinaryOpExpr {
+	return BinaryOpExpr{Type: "BinaryOpExpr", Left: left, Operation: op, Right: right}
+}
+
+func (this BinaryOpExpr) GetType() string {
+	return this.Type
+}
