@@ -71,9 +71,9 @@ type ArrayType struct {
 
 // Declaration can be bounded (assigned to expression) or unbounded (no assignment).
 type Declaration struct {
-	Type       Type        `json:"type"`
-	Identifier Identifier  `json:"identifier"`
-	Expr       *Expression `json:"expr,omitempty"`
+	Type       Type         `json:"type"`
+	Identifier Identifier   `json:"identifier"`
+	Expr       *IExpression `json:"expr,omitempty"`
 }
 
 type Any interface{}
@@ -83,6 +83,44 @@ type IExpression interface {
 	// Eval(map[string]Any) Any
 }
 
-type Expression struct {
-	test string
+type UnknownExpr struct {
+	Type string `json:"type"`
+}
+
+func NewUnknownExpr() UnknownExpr {
+	return UnknownExpr{Type: "UnknownExpr"}
+}
+
+// LandExpr is a logic OR expression.
+type LorExpr struct {
+	Type  string      `json:"type"`
+	Left  IExpression `json:"left"`
+	Right IExpression `json:"right"`
+}
+
+func NewLorExpr(left IExpression, right IExpression) LorExpr {
+	return LorExpr{Type: "LorExpr", Left: left, Right: right}
+}
+
+// LandExpr is a logic AND expression.
+type LandExpr struct {
+	Type  string      `json:"type"`
+	Left  IExpression `json:"left"`
+	Right IExpression `json:"right"`
+}
+
+func NewLandExpr(left IExpression, right IExpression) LandExpr {
+	return LandExpr{Type: "LandExpr", Left: left, Right: right}
+}
+
+// ComparisonExpr is a comparison expression.
+type ComparisonExpr struct {
+	Type      string      `json:"type"`
+	Left      IExpression `json:"left"`
+	Operation string      `json:"op"`
+	Right     IExpression `json:"right"`
+}
+
+func NewComparisonExpr(left IExpression, op string, right IExpression) ComparisonExpr {
+	return ComparisonExpr{Type: "ComparisonExpr", Left: left, Operation: op, Right: right}
 }

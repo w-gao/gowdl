@@ -108,7 +108,7 @@ func (v *WdlVisitor) VisitUnbound_decls(ctx domain.IUnbound_declsContext) domain
 func (v *WdlVisitor) VisitBound_decls(ctx domain.IBound_declsContext) domain.Declaration {
 	identifier := domain.Identifier(ctx.Identifier().GetText())
 	var type_ domain.Type
-	var expr domain.Expression
+	var expr domain.IExpression
 
 	for _, child := range ctx.GetChildren() {
 		switch tt := child.(type) {
@@ -183,57 +183,113 @@ func (v *WdlVisitor) VisitString(ctx domain.IStringContext) string { // interfac
 // 	return v.VisitChildren(ctx)
 // }
 
-func (v *WdlVisitor) VisitExpr(ctx domain.IExprContext) domain.Expression {
-	return domain.Expression{}
+func (v *WdlVisitor) VisitExpr(ctx domain.IExprContext) domain.IExpression {
+	fmt.Println("VisitExpr")
+	infixCtx := ctx.GetChild(0).(domain.IExpr_infixContext)
+
+	// 	expr
+	// 	: expr_infix
+	// 	;
+	//
+	//   expr_infix
+	// 	: expr_infix0 #infix0
+	// 	;
+
+	infix0Ctx := infixCtx.GetChild(0).(domain.IExpr_infix0Context)
+	return v.VisitInfix0(infix0Ctx)
 }
 
-// func (v *WdlVisitor) VisitInfix0(ctx *parsers.Infix0Context) interface{} {
-// 	return v.VisitChildren(ctx)
-// }
+func (v *WdlVisitor) VisitInfix0(ctx domain.IExpr_infix0Context) domain.IExpression {
+	fmt.Println("VisitInfix0")
 
-// func (v *WdlVisitor) VisitInfix1(ctx *parsers.Infix1Context) interface{} {
-// 	return v.VisitChildren(ctx)
-// }
+	// expr_infix0
+	// : expr_infix0 OR expr_infix1 #lor
+	// | expr_infix1 #infix1
+	// ;
 
-// func (v *WdlVisitor) VisitLor(ctx *parsers.LorContext) interface{} {
-// 	return v.VisitChildren(ctx)
-// }
+	if count := ctx.GetChildCount(); count == 1 {
+		// No branching
+		infix1Ctx := ctx.GetChild(0).(domain.IExpr_infix1Context)
+		return v.VisitInfix1(infix1Ctx)
+	} else if count != 3 {
+		v.Reporter.Error(ctx, fmt.Errorf("infix0 contains unexpected number of children"))
+		return domain.NewUnknownExpr()
+	}
 
-// func (v *WdlVisitor) VisitInfix2(ctx *parsers.Infix2Context) interface{} {
-// 	return v.VisitChildren(ctx)
-// }
+	infix0Ctx := ctx.GetChild(0).(domain.IExpr_infix0Context) // 0
+	infix1Ctx := ctx.GetChild(2).(domain.IExpr_infix1Context) // 2
 
-// func (v *WdlVisitor) VisitLand(ctx *parsers.LandContext) interface{} {
-// 	return v.VisitChildren(ctx)
-// }
+	return domain.NewLorExpr(
+		v.VisitInfix0(infix0Ctx), // left
+		v.VisitInfix1(infix1Ctx), // right
+	)
+}
 
-// func (v *WdlVisitor) VisitEqeq(ctx *parsers.EqeqContext) interface{} {
-// 	return v.VisitChildren(ctx)
-// }
+func (v *WdlVisitor) VisitInfix1(ctx domain.IExpr_infix1Context) domain.IExpression {
+	fmt.Println("VisitInfix1")
 
-// func (v *WdlVisitor) VisitLt(ctx *parsers.LtContext) interface{} {
-// 	return v.VisitChildren(ctx)
-// }
+	// expr_infix1
+	// : expr_infix1 AND expr_infix2 #land
+	// | expr_infix2 #infix2
+	// ;
 
-// func (v *WdlVisitor) VisitInfix3(ctx *parsers.Infix3Context) interface{} {
-// 	return v.VisitChildren(ctx)
-// }
+	if count := ctx.GetChildCount(); count == 1 {
+		// No branching
+		infix2Ctx := ctx.GetChild(0).(domain.IExpr_infix2Context)
+		return v.VisitInfix2(infix2Ctx)
+	} else if count != 3 {
+		v.Reporter.Error(ctx, fmt.Errorf("infix1 contains unexpected number of children"))
+		return domain.NewUnknownExpr()
+	}
 
-// func (v *WdlVisitor) VisitGte(ctx *parsers.GteContext) interface{} {
-// 	return v.VisitChildren(ctx)
-// }
+	infix1Ctx := ctx.GetChild(0).(domain.IExpr_infix1Context) // 0
+	infix2Ctx := ctx.GetChild(2).(domain.IExpr_infix2Context) // 2
 
-// func (v *WdlVisitor) VisitNeq(ctx *parsers.NeqContext) interface{} {
-// 	return v.VisitChildren(ctx)
-// }
+	return domain.NewLandExpr(
+		v.VisitInfix1(infix1Ctx), // left
+		v.VisitInfix2(infix2Ctx), // right
+	)
+}
 
-// func (v *WdlVisitor) VisitLte(ctx *parsers.LteContext) interface{} {
-// 	return v.VisitChildren(ctx)
-// }
+func (v *WdlVisitor) VisitInfix2(ctx domain.IExpr_infix2Context) domain.IExpression {
 
-// func (v *WdlVisitor) VisitGt(ctx *parsers.GtContext) interface{} {
-// 	return v.VisitChildren(ctx)
-// }
+	// A bunch of comparisons:
+
+	// expr_infix2
+	// : expr_infix2 EQUALITY expr_infix3 #eqeq
+	// | expr_infix2 NOTEQUAL expr_infix3 #neq
+	// | expr_infix2 LTE expr_infix3 #lte
+	// | expr_infix2 GTE expr_infix3 #gte
+	// | expr_infix2 LT expr_infix3 #lt
+	// | expr_infix2 GT expr_infix3 #gt
+	// | expr_infix3 #infix3
+	// ;
+
+	if count := ctx.GetChildCount(); count == 1 {
+		// No branching
+		infix3Ctx := ctx.GetChild(0).(domain.IExpr_infix3Context)
+		return v.VisitInfix3(infix3Ctx)
+	} else if count != 3 {
+		v.Reporter.Error(ctx, fmt.Errorf("infix2 contains unexpected number of children"))
+		return domain.NewUnknownExpr()
+	}
+
+	infix2Ctx := ctx.GetChild(0).(domain.IExpr_infix2Context) // 0
+	op := ctx.GetChild(1).(antlr.TerminalNode).GetText()      // 1
+	infix3Ctx := ctx.GetChild(2).(domain.IExpr_infix3Context) // 2
+
+	// `op` is one of []string{"==", "!=", "<=", ">=", "<", ">"}.  We could further parse this, but string would be fine for now.
+
+	return domain.NewComparisonExpr(
+		v.VisitInfix2(infix2Ctx), // left
+		op,
+		v.VisitInfix3(infix3Ctx), // right
+	)
+}
+
+func (v *WdlVisitor) VisitInfix3(ctx domain.IExpr_infix3Context) interface{} {
+	return "infix3"
+}
 
 // func (v *WdlVisitor) VisitAdd(ctx *parsers.AddContext) interface{} {
 // 	return v.VisitChildren(ctx)
