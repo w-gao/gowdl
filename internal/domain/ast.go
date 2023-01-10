@@ -79,8 +79,7 @@ type Declaration struct {
 type Any interface{}
 
 type IExpression interface {
-	// Eval should exist for the parsed runtime DAG, not here.
-	// Eval(map[string]Any) Any
+	GetType() string
 }
 
 type UnknownExpr struct {
@@ -88,7 +87,13 @@ type UnknownExpr struct {
 }
 
 func NewUnknownExpr() UnknownExpr {
-	return UnknownExpr{Type: "UnknownExpr"}
+	return UnknownExpr{
+		Type: "UnknownExpr",
+	}
+}
+
+func (this UnknownExpr) GetType() string {
+	return this.Type
 }
 
 // LandExpr is a logic OR expression.
@@ -102,6 +107,10 @@ func NewLorExpr(left IExpression, right IExpression) LorExpr {
 	return LorExpr{Type: "LorExpr", Left: left, Right: right}
 }
 
+func (this LorExpr) GetType() string {
+	return this.Type
+}
+
 // LandExpr is a logic AND expression.
 type LandExpr struct {
 	Type  string      `json:"type"`
@@ -111,6 +120,10 @@ type LandExpr struct {
 
 func NewLandExpr(left IExpression, right IExpression) LandExpr {
 	return LandExpr{Type: "LandExpr", Left: left, Right: right}
+}
+
+func (this LandExpr) GetType() string {
+	return this.Type
 }
 
 // ComparisonExpr is a comparison expression.
@@ -123,4 +136,8 @@ type ComparisonExpr struct {
 
 func NewComparisonExpr(left IExpression, op string, right IExpression) ComparisonExpr {
 	return ComparisonExpr{Type: "ComparisonExpr", Left: left, Operation: op, Right: right}
+}
+
+func (this ComparisonExpr) GetType() string {
+	return this.Type
 }

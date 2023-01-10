@@ -287,8 +287,17 @@ func (v *WdlVisitor) VisitInfix2(ctx domain.IExpr_infix2Context) domain.IExpress
 	)
 }
 
-func (v *WdlVisitor) VisitInfix3(ctx domain.IExpr_infix3Context) interface{} {
-	return "infix3"
+func (v *WdlVisitor) VisitInfix3(ctx domain.IExpr_infix3Context) domain.IExpression {
+
+	// addition and subtraction
+
+	// expr_infix3
+	// : expr_infix3 PLUS expr_infix4 #add
+	// | expr_infix3 MINUS expr_infix4 #sub
+	// | expr_infix4 #infix4
+	// ;
+
+	return domain.NewUnknownExpr()
 }
 
 // func (v *WdlVisitor) VisitAdd(ctx *parsers.AddContext) interface{} {
