@@ -9,29 +9,6 @@ A Workflow Description Language (WDL) parser in Go.
       [wdl-viewer](https://github.com/w-gao/wdl-viewer)
 
 
-## Getting started
-
-### Install from source
-
-To install `gowdl` from source, first clone this repo:
-
-```
-https://github.com/w-gao/gowdl.git
-```
-
-Then, generate the necessary parsers:
-
-```
-make generate
-```
-
-Finally, install the local package:
-
-```
-go install .
-```
-
-
 ## API
 
 `gowdl` provides a few APIs that can be used in your own project.
@@ -145,3 +122,38 @@ Sample output:
     }
 ]
 ```
+
+
+## Getting started
+
+If you want to contribute to the project or try it out locally, you can install
+`gowdl` in the following ways:
+
+### Install from source
+
+To install `gowdl` from source, first clone this repo:
+
+```
+https://github.com/w-gao/gowdl.git
+```
+
+Then, generate the necessary parsers:
+
+```
+make generate
+```
+
+Finally, install the local package:
+
+```
+go install .
+```
+
+### Add as dependency via `go get`
+
+This is not available yet.
+
+
+## LICENSE
+
+MIT License. Copyright (c) 2022-2023 William Gao
