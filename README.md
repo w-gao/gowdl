@@ -2,7 +2,7 @@
 
 A Workflow Description Language (WDL) parser in Go.
 
-- **Note**: this project is not under active development at the moment
+- **NOTE: this project is not under active development at the moment**
 - `gowdl` provides the generated ANTLR4 parsers for WDL versions 1.0 and 1.1
 - Go bindings for the WDL abtract syntax tree (AST) is work-in-progress
     - Currently, WDL imports can be parsed and used for projects like
@@ -60,8 +60,7 @@ The `gowdl` CLI provides the following commands.
 
 ### `gowdl graph [FILE]`: get the dependency graph of WDL
 
-**Note:** only imports are parsed - AST for the rest of the document is not all
-available.
+**NOTE only imports are parsed - AST for the rest of the document is not all available.**
 
 Sample input:
 
