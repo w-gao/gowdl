@@ -179,9 +179,11 @@ func (v *WdlVisitor) VisitString(ctx domain.IStringContext) string { // interfac
 	return ""
 }
 
-// func (v *WdlVisitor) VisitPrimitive_literal(ctx *parsers.Primitive_literalContext) interface{} {
-// 	return v.VisitChildren(ctx)
-// }
+func (v *WdlVisitor) VisitPrimitive_literal(ctx domain.IPrimitive_literalContext) interface{} {
+
+	// TODO: figure out the appropriate return type.
+	return 123
+}
 
 func (v *WdlVisitor) VisitExpr(ctx domain.IExprContext) domain.IExpression {
 	infixCtx := ctx.GetChild(0).(domain.IExpr_infixContext)
@@ -206,7 +208,7 @@ func (v *WdlVisitor) VisitInfix0(ctx domain.IExpr_infix0Context) domain.IExpress
 	// ;
 
 	if count := ctx.GetChildCount(); count == 1 {
-		// No branching
+		// No branches
 		infix1Ctx := ctx.GetChild(0).(domain.IExpr_infix1Context)
 		return v.VisitInfix1(infix1Ctx)
 	} else if count != 3 {
@@ -231,7 +233,7 @@ func (v *WdlVisitor) VisitInfix1(ctx domain.IExpr_infix1Context) domain.IExpress
 	// ;
 
 	if count := ctx.GetChildCount(); count == 1 {
-		// No branching
+		// No branches
 		infix2Ctx := ctx.GetChild(0).(domain.IExpr_infix2Context)
 		return v.VisitInfix2(infix2Ctx)
 	} else if count != 3 {
@@ -263,7 +265,7 @@ func (v *WdlVisitor) VisitInfix2(ctx domain.IExpr_infix2Context) domain.IExpress
 	// ;
 
 	if count := ctx.GetChildCount(); count == 1 {
-		// No branching
+		// No branches
 		infix3Ctx := ctx.GetChild(0).(domain.IExpr_infix3Context)
 		return v.VisitInfix3(infix3Ctx)
 	} else if count != 3 {
@@ -295,7 +297,7 @@ func (v *WdlVisitor) VisitInfix3(ctx domain.IExpr_infix3Context) domain.IExpress
 	// ;
 
 	if count := ctx.GetChildCount(); count == 1 {
-		// No branching
+		// No branches
 		infix4Ctx := ctx.GetChild(0).(domain.IExpr_infix4Context)
 		return v.VisitInfix4(infix4Ctx)
 	} else if count != 3 {
@@ -328,7 +330,7 @@ func (v *WdlVisitor) VisitInfix4(ctx domain.IExpr_infix4Context) domain.IExpress
 	// ;
 
 	if count := ctx.GetChildCount(); count == 1 {
-		// No branching
+		// No branches
 		infix5Ctx := ctx.GetChild(0).(domain.IExpr_infix5Context)
 		return v.VisitInfix5(infix5Ctx)
 	} else if count != 3 {
@@ -350,6 +352,40 @@ func (v *WdlVisitor) VisitInfix4(ctx domain.IExpr_infix4Context) domain.IExpress
 }
 
 func (v *WdlVisitor) VisitInfix5(ctx domain.IExpr_infix5Context) domain.IExpression {
+	coreCtx := ctx.GetChild(0).(domain.IExpr_coreContext)
+
+	// expr_infix5
+	// : expr_core
+	// ;
+	//
+	// expr_core
+	// : Identifier LPAREN (expr (COMMA expr)* COMMA?)? RPAREN #apply
+	// | LBRACK (expr (COMMA expr)* COMMA?)* RBRACK #array_literal
+	// | LPAREN expr COMMA expr RPAREN #pair_literal
+	// | LBRACE (expr COLON expr (COMMA expr COLON expr)* COMMA?)* RBRACE #map_literal
+	// | OBJECT_LITERAL LBRACE (Identifier COLON expr (COMMA Identifier COLON expr)* COMMA?)* RBRACE #object_literal
+	// | IF expr THEN expr ELSE expr #ifthenelse
+	// | LPAREN expr RPAREN #expression_group
+	// | expr_core LBRACK expr RBRACK #at
+	// | expr_core DOT Identifier #get_name
+	// | NOT expr #negate
+	// | (PLUS | MINUS) expr #unarysigned
+	// | primitive_literal #primitives
+	// | Identifier #left_name
+	// ;
+
+	// We probably **have** to use reflection here to get the type of context we're dealing with (the label). I don't
+	// think ANTLR4 stores this information in the node, it just assumes that we're working with the original interface
+	// so we could type check that way, but we're not.
+	fmt.Printf("%v\n", reflect.TypeOf(coreCtx).Elem().Name())
+
+	switch reflect.TypeOf(coreCtx).Elem().Name() {
+	case "PrimitivesContext":
+		rv := domain.NewTerminalExpr()
+		rv.Value = v.VisitPrimitive_literal(coreCtx.GetChild(0).(domain.IPrimitive_literalContext))
+		return rv
+	}
+
 	return domain.NewUnknownExpr()
 }
 

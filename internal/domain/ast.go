@@ -157,3 +157,16 @@ func NewBinaryOpExpr(left IExpression, op string, right IExpression) BinaryOpExp
 func (this BinaryOpExpr) GetType() string {
 	return this.Type
 }
+
+type TerminalExpr struct {
+	Type  string      `json:"type"`
+	Value interface{} `json:"value"`
+}
+
+func NewTerminalExpr() TerminalExpr {
+	return TerminalExpr{Type: "TerminalExpr"}
+}
+
+func (this TerminalExpr) GetType() string {
+	return this.Type
+}
